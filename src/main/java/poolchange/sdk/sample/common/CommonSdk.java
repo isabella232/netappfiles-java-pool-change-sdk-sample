@@ -17,11 +17,12 @@ public class CommonSdk
      * Returns an ANF resource or null if it does not exist
      * @param anfClient Azure NetApp Files Management Client
      * @param parameters List of parameters required depending on the resource type:
-     *                   Account        -> ResourceGroupName, AccountName
-     *                   Capacity Pool  -> ResourceGroupName, AccountName, PoolName
-     *                   Volume         -> ResourceGroupName, AccountName, PoolName, VolumeName
-     *                   Snapshot       -> ResourceGroupName, AccountName, PoolName, VolumeName, SnapshotName
-     * @param clazz Valid class types: NetAppAccountInner, CapacityPoolInner, VolumeInner, SnapshotInner
+     *                   Account         -> ResourceGroupName, AccountName
+     *                   Snapshot Policy -> ResourceGroupName, AccountName, SnapshotPolicyName
+     *                   Capacity Pool   -> ResourceGroupName, AccountName, PoolName
+     *                   Volume          -> ResourceGroupName, AccountName, PoolName, VolumeName
+     *                   Snapshot        -> ResourceGroupName, AccountName, PoolName, VolumeName, SnapshotName
+     * @param clazz Valid class types: NetAppAccountInner, CapacityPoolInner, VolumeInner, SnapshotInner, SnapshotPolicyInner
      * @return Valid resource T
      */
     public static <T> CompletableFuture<T> getResourceAsync(AzureNetAppFilesManagementClientImpl anfClient, String[] parameters, Class<T> clazz)
