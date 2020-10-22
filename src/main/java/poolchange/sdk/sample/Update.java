@@ -12,6 +12,16 @@ import java.util.concurrent.CompletableFuture;
 
 public class Update
 {
+    /**
+     * Perform pool change on Volume
+     * @param anfClient Azure NetApp Files Management Client
+     * @param resourceGroupName Name of the resource group
+     * @param accountName Name of the Account
+     * @param poolName Name of Volume's current Capacity Pool
+     * @param volumeName Name of the Volume being updated
+     * @param newPoolResourceId Resource id of new capacity pool
+     * @return
+     */
     public static CompletableFuture<Void> volumePoolChange(AzureNetAppFilesManagementClientImpl anfClient, String resourceGroupName,
                                                            String accountName, String poolName, String volumeName, String newPoolResourceId)
     {
