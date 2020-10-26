@@ -8,7 +8,7 @@ products:
 description: "This project demonstrates how to perform a pool change on a Volume for Microsoft.NetApp resource provider using Java SDK."
 ---
 
-# Azure NetAppFiles SDK for Java
+# Azure NetAppFiles SDK Sample - Pool Change for Java
 
 This project demonstrates how to use a Java sample application to perform a pool change on a Volume for the Microsoft.NetApp
 resource provider.
