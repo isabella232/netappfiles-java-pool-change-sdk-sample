@@ -17,15 +17,15 @@ In this sample application we perform the following operations:
 
 * Creations
     * ANF Account
-    * Primary Capacity Pool in service level Premium
-    * Secondary Capacity Pool in service level Standard
-    * Volume in the Primary pool
+    * Source Capacity Pool in service level Premium
+    * Destination Capacity Pool in service level Standard
+    * Volume in the Source pool
 * Updates
     * Perform pool change, moving Volume from Premium tier capacity pool to Standard tier capacity pool
 * Deletions
     * Volume
-    * Primary Capacity Pool
-    * Secondary Capacity Pool
+    * Source Capacity Pool
+    * Destination Capacity Pool
     * ANF Account
 
 >Note: The cleanup execution is disabled by default. If you want to run this end to end with the cleanup, please
@@ -39,8 +39,9 @@ If you don't already have a Microsoft Azure subscription, you can get a FREE tri
 1. The sample is written in Java 11. The Maven compiler's target Java version is therefore Java 11, and the JAVA_HOME environment variable must be set to Java 11 or a newer version.
 Instructions on setting JAVA_HOME can be found [here](https://mkyong.com/java/how-to-set-java_home-on-windows-10/) for windows,
 1. Azure subscription
-1. Subscription needs to be whitelisted for Azure NetApp Files. For more information, please refer to
+1. Subscription needs to be enabled for Azure NetApp Files. For more information, please refer to
 [this](https://docs.microsoft.com/azure/azure-netapp-files/azure-netapp-files-register#waitlist) document
+1. (Valid only while Pool Change feature is in preview state) Request preview access for Azure NetApp Files Pool Change. For more information, please refer to [this](https://docs.microsoft.com/en-us/azure/azure-netapp-files/dynamic-change-volume-service-level#register-the-feature) document.
 1. Resource Group created
 1. Virtual Network with a delegated subnet to Microsoft.Netapp/volumes resource. For more information. please refer to
 [Guidelines for Azure NetApp Files network planning](https://docs.microsoft.com/en-us/azure/azure-netapp-files/azure-netapp-files-network-topologies)

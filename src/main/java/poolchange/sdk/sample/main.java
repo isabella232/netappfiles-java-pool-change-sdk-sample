@@ -57,10 +57,10 @@ public class main
         String vnetName = "vnet";
         String subnetName = "anf-sn";
         String anfAccountName = "anfaccount99";
-        String capacityPoolNamePrimary = "pool-primary";
-        String capacityPoolNameSecondary = "pool-secondary";
-        String capacityPoolServiceLevelPrimary = "Premium"; // Valid service levels are: Ultra, Premium, Standard
-        String capacityPoolServiceLevelSecondary = "Standard";
+        String capacityPoolNameSource = "pool-source";
+        String capacityPoolNameDestination = "pool-destination";
+        String capacityPoolServiceLevelSource = "Premium"; // Valid service levels are: Ultra, Premium, Standard
+        String capacityPoolServiceLevelDestination = "Standard";
         String volumeName = "volume01";
 
         long capacityPoolSize = 4398046511104L;  // 4TiB which is minimum size
@@ -113,56 +113,56 @@ public class main
         //---------------------------
         // Create Capacity Pool
         //---------------------------
-        Utils.writeConsoleMessage("Creating Primary Capacity Pool at Premium service level...");
+        Utils.writeConsoleMessage("Creating Source Capacity Pool at Premium service level...");
 
-        String[] poolParamsPrimary = {resourceGroupName, anfAccountName, capacityPoolNamePrimary};
-        CapacityPoolInner capacityPoolPrimary = await(CommonSdk.getResourceAsync(anfClient, poolParamsPrimary, CapacityPoolInner.class));
-        if (capacityPoolPrimary == null)
+        String[] poolParamsSource = {resourceGroupName, anfAccountName, capacityPoolNameSource};
+        CapacityPoolInner capacityPoolSource = await(CommonSdk.getResourceAsync(anfClient, poolParamsSource, CapacityPoolInner.class));
+        if (capacityPoolSource == null)
         {
             CapacityPoolInner newCapacityPool = new CapacityPoolInner();
-            newCapacityPool.withServiceLevel(ServiceLevel.fromString(capacityPoolServiceLevelPrimary));
+            newCapacityPool.withServiceLevel(ServiceLevel.fromString(capacityPoolServiceLevelSource));
             newCapacityPool.withSize(capacityPoolSize);
             newCapacityPool.withLocation(location);
 
             try
             {
-                capacityPoolPrimary = await(Creation.createCapacityPool(anfClient, resourceGroupName, anfAccountName, capacityPoolNamePrimary, newCapacityPool));
+                capacityPoolSource = await(Creation.createCapacityPool(anfClient, resourceGroupName, anfAccountName, capacityPoolNameSource, newCapacityPool));
             }
             catch (CloudException e)
             {
-                Utils.writeConsoleMessage("An error occurred while creating primary capacity pool: " + e.body().message());
+                Utils.writeConsoleMessage("An error occurred while creating source capacity pool: " + e.body().message());
                 throw e;
             }
         }
         else
         {
-            Utils.writeConsoleMessage("Primary Capacity Pool already exists");
+            Utils.writeConsoleMessage("Source Capacity Pool already exists");
         }
 
-        Utils.writeConsoleMessage("Creating Secondary Capacity Pool at Standard service level...");
+        Utils.writeConsoleMessage("Creating Destination Capacity Pool at Standard service level...");
 
-        String[] poolParamsSecondary = {resourceGroupName, anfAccountName, capacityPoolNameSecondary};
-        CapacityPoolInner capacityPoolSecondary = await(CommonSdk.getResourceAsync(anfClient, poolParamsSecondary, CapacityPoolInner.class));
-        if (capacityPoolSecondary == null)
+        String[] poolParamsDestination = {resourceGroupName, anfAccountName, capacityPoolNameDestination};
+        CapacityPoolInner capacityPoolDestination = await(CommonSdk.getResourceAsync(anfClient, poolParamsDestination, CapacityPoolInner.class));
+        if (capacityPoolDestination == null)
         {
             CapacityPoolInner newCapacityPool = new CapacityPoolInner();
-            newCapacityPool.withServiceLevel(ServiceLevel.fromString(capacityPoolServiceLevelSecondary));
+            newCapacityPool.withServiceLevel(ServiceLevel.fromString(capacityPoolServiceLevelDestination));
             newCapacityPool.withSize(capacityPoolSize);
             newCapacityPool.withLocation(location);
 
             try
             {
-                capacityPoolSecondary = await(Creation.createCapacityPool(anfClient, resourceGroupName, anfAccountName, capacityPoolNameSecondary, newCapacityPool));
+                capacityPoolDestination = await(Creation.createCapacityPool(anfClient, resourceGroupName, anfAccountName, capacityPoolNameDestination, newCapacityPool));
             }
             catch (CloudException e)
             {
-                Utils.writeConsoleMessage("An error occurred while creating secondary capacity pool: " + e.body().message());
+                Utils.writeConsoleMessage("An error occurred while creating destination capacity pool: " + e.body().message());
                 throw e;
             }
         }
         else
         {
-            Utils.writeConsoleMessage("Secondary Capacity Pool already exists");
+            Utils.writeConsoleMessage("Destination Capacity Pool already exists");
         }
 
         //---------------------------
@@ -170,7 +170,7 @@ public class main
         //---------------------------
         Utils.writeConsoleMessage("Creating Volume at Premium service level...");
 
-        String[] volumeParams = {resourceGroupName, anfAccountName, capacityPoolNamePrimary, volumeName};
+        String[] volumeParams = {resourceGroupName, anfAccountName, capacityPoolNameSource, volumeName};
         VolumeInner volume = await(CommonSdk.getResourceAsync(anfClient, volumeParams, VolumeInner.class));
         if (volume == null)
         {
@@ -180,7 +180,7 @@ public class main
 
             VolumeInner newVolume = new VolumeInner();
             newVolume.withLocation(location);
-            newVolume.withServiceLevel(ServiceLevel.fromString(capacityPoolServiceLevelPrimary));
+            newVolume.withServiceLevel(ServiceLevel.fromString(capacityPoolServiceLevelSource));
             newVolume.withCreationToken(volumeName);
             newVolume.withSubnetId(subnetId);
             newVolume.withUsageThreshold(volumeSize);
@@ -188,7 +188,7 @@ public class main
 
             try
             {
-                volume = await(Creation.createVolume(anfClient, resourceGroupName, anfAccountName, capacityPoolNamePrimary, volumeName, newVolume));
+                volume = await(Creation.createVolume(anfClient, resourceGroupName, anfAccountName, capacityPoolNameSource, volumeName, newVolume));
             }
             catch (CloudException e)
             {
@@ -210,8 +210,8 @@ public class main
 
         try
         {
-            await(Update.volumePoolChange(anfClient, resourceGroupName, anfAccountName, capacityPoolNamePrimary, volumeName, capacityPoolSecondary.id()));
-            Utils.writeSuccessMessage("Pool change successful. Moved Volume from " + capacityPoolNamePrimary + " to " + capacityPoolNameSecondary);
+            await(Update.volumePoolChange(anfClient, resourceGroupName, anfAccountName, capacityPoolNameSource, volumeName, capacityPoolDestination.id()));
+            Utils.writeSuccessMessage("Pool change successful. Moved Volume from " + capacityPoolNameSource + " to " + capacityPoolNameDestination);
         }
         catch (CloudException e)
         {
@@ -219,7 +219,7 @@ public class main
             throw e;
         }
 
-        volumeParams = new String[]{resourceGroupName, anfAccountName, capacityPoolNameSecondary, volumeName};
+        volumeParams = new String[]{resourceGroupName, anfAccountName, capacityPoolNameDestination, volumeName};
         volume = await(CommonSdk.getResourceAsync(anfClient, volumeParams, VolumeInner.class));
         Utils.writeConsoleMessage("Current Volume service level: " + volume.serviceLevel());
 
@@ -244,13 +244,13 @@ public class main
                 CommonSdk.waitForNoANFResource(anfClient, volume.id(), VolumeInner.class);
                 Utils.writeSuccessMessage("Volume successfully deleted: " + volume.id());
 
-                await(Cleanup.runCleanupTask(anfClient, poolParamsPrimary, CapacityPoolInner.class));
-                CommonSdk.waitForNoANFResource(anfClient, capacityPoolPrimary.id(), CapacityPoolInner.class);
-                Utils.writeSuccessMessage("Primary Capacity Pool successfully deleted: " + capacityPoolPrimary.id());
+                await(Cleanup.runCleanupTask(anfClient, poolParamsSource, CapacityPoolInner.class));
+                CommonSdk.waitForNoANFResource(anfClient, capacityPoolSource.id(), CapacityPoolInner.class);
+                Utils.writeSuccessMessage("Source Capacity Pool successfully deleted: " + capacityPoolSource.id());
 
-                await(Cleanup.runCleanupTask(anfClient, poolParamsSecondary, CapacityPoolInner.class));
-                CommonSdk.waitForNoANFResource(anfClient, capacityPoolSecondary.id(), CapacityPoolInner.class);
-                Utils.writeSuccessMessage("Secondary Capacity Pool successfully deleted: " + capacityPoolSecondary.id());
+                await(Cleanup.runCleanupTask(anfClient, poolParamsDestination, CapacityPoolInner.class));
+                CommonSdk.waitForNoANFResource(anfClient, capacityPoolDestination.id(), CapacityPoolInner.class);
+                Utils.writeSuccessMessage("Destination Capacity Pool successfully deleted: " + capacityPoolDestination.id());
 
                 await(Cleanup.runCleanupTask(anfClient, accountParams, NetAppAccountInner.class));
                 CommonSdk.waitForNoANFResource(anfClient, anfAccount.id(), NetAppAccountInner.class);
