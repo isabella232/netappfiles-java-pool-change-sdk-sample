@@ -41,7 +41,7 @@ Instructions on setting JAVA_HOME can be found [here](https://mkyong.com/java/ho
 and [here](https://mkyong.com/java/how-to-set-java_home-environment-variable-on-mac-os-x/) for macOS.
 1. Azure subscription
 1. Subscription needs to be enabled for Azure NetApp Files. For more information, please refer to
-[this](https://docs.microsoft.com/azure/azure-netapp-files/azure-netapp-files-register#waitlist) document
+[this](https://docs.microsoft.com/azure/azure-netapp-files/azure-netapp-files-register#waitlist) document.
 1. (Valid only while Pool Change feature is in preview state) Request preview access for Azure NetApp Files Pool Change. For more information, please refer to [this](https://docs.microsoft.com/en-us/azure/azure-netapp-files/dynamic-change-volume-service-level#register-the-feature) document.
 1. Resource Group created
 1. Virtual Network with a delegated subnet to Microsoft.Netapp/volumes resource. For more information. please refer to
@@ -109,7 +109,7 @@ The following table describes all files within this solution:
 
 ## How to run the console application
 
-1. Clone it locally
+1. Clone it locally 
     ```powershell
     git clone https://github.com/Azure-Samples/netappfiles-java-pool-change-sdk-sample
     ```
@@ -127,7 +127,7 @@ The following table describes all files within this solution:
     ```
 
 Sample output
-![e2e execution](./media/e2e-execution.png)
+![e2e execution](./media/e2e-execution.png) 
 
 ## References
 
