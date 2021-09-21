@@ -6,6 +6,7 @@
 package poolchange.sdk.sample;
 
 import com.azure.core.credential.TokenCredential;
+import com.azure.core.exception.AzureException;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.identity.DefaultAzureCredentialBuilder;
@@ -95,7 +96,7 @@ public class main
             {
                 anfAccount = Creation.createANFAccount(manager.serviceClient(), resourceGroupName, anfAccountName, newAccount);
             }
-            catch (Exception e)
+            catch (AzureException e)
             {
                 Utils.writeConsoleMessage("An error occurred while creating account: " + e.getMessage());
                 throw e;
@@ -124,7 +125,7 @@ public class main
             {
                 capacityPoolSource = Creation.createCapacityPool(manager.serviceClient(), resourceGroupName, anfAccountName, capacityPoolNameSource, newCapacityPool);
             }
-            catch (Exception e)
+            catch (AzureException e)
             {
                 Utils.writeConsoleMessage("An error occurred while creating source capacity pool: " + e.getMessage());
                 throw e;
@@ -150,7 +151,7 @@ public class main
             {
                 capacityPoolDestination = Creation.createCapacityPool(manager.serviceClient(), resourceGroupName, anfAccountName, capacityPoolNameDestination, newCapacityPool);
             }
-            catch (Exception e)
+            catch (AzureException e)
             {
                 Utils.writeConsoleMessage("An error occurred while creating destination capacity pool: " + e.getMessage());
                 throw e;
@@ -187,7 +188,7 @@ public class main
                 volume = Creation.createVolume(manager.serviceClient(), resourceGroupName, anfAccountName, capacityPoolNameSource, volumeName, newVolume);
                 Utils.writeSuccessMessage("Volume successfully created, resource id: " + volume.id());
             }
-            catch (Exception e)
+            catch (AzureException e)
             {
                 Utils.writeConsoleMessage("An error occurred while creating volume: " + e.getMessage());
                 throw e;
@@ -210,7 +211,7 @@ public class main
             Update.volumePoolChange(manager.serviceClient(), resourceGroupName, anfAccountName, capacityPoolNameSource, volumeName, capacityPoolDestination.id());
             Utils.writeSuccessMessage("Pool change successful. Moved Volume from " + capacityPoolNameSource + " to " + capacityPoolNameDestination);
         }
-        catch (Exception e)
+        catch (AzureException e)
         {
             Utils.writeConsoleMessage("An error occurred while performing pool change: " + e.getMessage());
             throw e;
@@ -253,7 +254,7 @@ public class main
                 CommonSdk.waitForNoANFResource(manager.serviceClient(), anfAccount.id(), NetAppAccountInner.class);
                 Utils.writeSuccessMessage("Account successfully deleted: " + anfAccount.id());
             }
-            catch (Exception e)
+            catch (AzureException e)
             {
                 Utils.writeConsoleMessage("An error occurred while deleting resource: " + e.getMessage());
                 throw e;
