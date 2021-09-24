@@ -5,19 +5,20 @@
 
 package poolchange.sdk.sample;
 
-import com.ea.async.Async;
-import com.microsoft.azure.CloudException;
-import com.microsoft.azure.management.netapp.v2020_06_01.*;
-import com.microsoft.azure.management.netapp.v2020_06_01.implementation.*;
-import com.microsoft.rest.credentials.ServiceClientCredentials;
+import com.azure.core.credential.TokenCredential;
+import com.azure.core.exception.AzureException;
+import com.azure.core.management.AzureEnvironment;
+import com.azure.core.management.profile.AzureProfile;
+import com.azure.identity.DefaultAzureCredentialBuilder;
+import com.azure.resourcemanager.netapp.NetAppFilesManager;
+import com.azure.resourcemanager.netapp.fluent.models.CapacityPoolInner;
+import com.azure.resourcemanager.netapp.fluent.models.NetAppAccountInner;
+import com.azure.resourcemanager.netapp.fluent.models.VolumeInner;
+import com.azure.resourcemanager.netapp.models.ServiceLevel;
 import poolchange.sdk.sample.common.CommonSdk;
-import poolchange.sdk.sample.common.ServiceCredentialsAuth;
 import poolchange.sdk.sample.common.Utils;
 
 import java.util.Collections;
-import java.util.concurrent.CompletableFuture;
-
-import static com.ea.async.Async.await;
 
 public class main
 {
@@ -32,8 +33,7 @@ public class main
 
         try
         {
-            Async.init();
-            runAsync();
+            run();
             Utils.writeConsoleMessage("Sample application successfully completed execution");
         }
         catch (Exception e)
@@ -44,40 +44,37 @@ public class main
         System.exit(0);
     }
 
-    private static CompletableFuture<Void> runAsync()
+    private static void run()
     {
         //---------------------------------------------------------------------------------------------------------------------
         // Setting variables necessary for resources creation - change these to appropriate values related to your environment
         //---------------------------------------------------------------------------------------------------------------------
         boolean cleanup = false;
 
-        String subscriptionId = "<subscription id>";
-        String location = "eastus";
-        String resourceGroupName = "anf01-rg";
-        String vnetName = "vnet";
-        String subnetName = "anf-sn";
-        String anfAccountName = "anfaccount99";
-        String capacityPoolNameSource = "pool-source";
-        String capacityPoolNameDestination = "pool-destination";
+        String subscriptionId = "<subscription-id>";
+        String location = "<location>";
+        String resourceGroupName = "<resource-group-name>";
+        String vnetName = "<vnet-name>";
+        String subnetName = "<subnet-name>";
+        String anfAccountName = "anf-java-example-account";
+        String capacityPoolNameSource = "anf-java-example-pool-source";
+        String capacityPoolNameDestination = "anf-java-example-pool-destination";
         String capacityPoolServiceLevelSource = "Premium"; // Valid service levels are: Ultra, Premium, Standard
         String capacityPoolServiceLevelDestination = "Standard";
-        String volumeName = "volume01";
+        String volumeName = "anf-java-example-volume";
 
         long capacityPoolSize = 4398046511104L;  // 4TiB which is minimum size
         long volumeSize = 107374182400L;  // 100GiB - volume minimum size
 
-        // Authenticating using service principal, refer to README.md file for requirement details
-        ServiceClientCredentials credentials = ServiceCredentialsAuth.getServicePrincipalCredentials(System.getenv("AZURE_AUTH_LOCATION"));
-        if (credentials == null)
-        {
-            return CompletableFuture.completedFuture(null);
-        }
-
-        // Instantiating a new ANF management client
+        // Instantiating a new ANF management client and authenticate
+        AzureProfile profile = new AzureProfile(AzureEnvironment.AZURE);
+        TokenCredential credential = new DefaultAzureCredentialBuilder()
+                .authorityHost(profile.getEnvironment().getActiveDirectoryEndpoint())
+                .build();
         Utils.writeConsoleMessage("Instantiating a new Azure NetApp Files management client...");
-        AzureNetAppFilesManagementClientImpl anfClient = new AzureNetAppFilesManagementClientImpl(credentials);
-        anfClient.withSubscriptionId(subscriptionId);
-        Utils.writeConsoleMessage("Api Version: " + anfClient.apiVersion());
+        NetAppFilesManager manager = NetAppFilesManager
+                .authenticate(credential, profile);
+
 
         //---------------------------
         // Creating ANF resources
@@ -89,7 +86,7 @@ public class main
         Utils.writeConsoleMessage("Creating Azure NetApp Files Account...");
 
         String[] accountParams = {resourceGroupName, anfAccountName};
-        NetAppAccountInner anfAccount = await(CommonSdk.getResourceAsync(anfClient, accountParams, NetAppAccountInner.class));
+        NetAppAccountInner anfAccount = (NetAppAccountInner) CommonSdk.getResource(manager.serviceClient(), accountParams, NetAppAccountInner.class);
         if (anfAccount == null)
         {
             NetAppAccountInner newAccount = new NetAppAccountInner();
@@ -97,11 +94,11 @@ public class main
 
             try
             {
-                anfAccount = await(Creation.createANFAccount(anfClient, resourceGroupName, anfAccountName, newAccount));
+                anfAccount = Creation.createANFAccount(manager.serviceClient(), resourceGroupName, anfAccountName, newAccount);
             }
-            catch (CloudException e)
+            catch (AzureException e)
             {
-                Utils.writeConsoleMessage("An error occurred while creating account: " + e.body().message());
+                Utils.writeConsoleMessage("An error occurred while creating account: " + e.getMessage());
                 throw e;
             }
         }
@@ -116,7 +113,7 @@ public class main
         Utils.writeConsoleMessage("Creating Source Capacity Pool at Premium service level...");
 
         String[] poolParamsSource = {resourceGroupName, anfAccountName, capacityPoolNameSource};
-        CapacityPoolInner capacityPoolSource = await(CommonSdk.getResourceAsync(anfClient, poolParamsSource, CapacityPoolInner.class));
+        CapacityPoolInner capacityPoolSource = (CapacityPoolInner) CommonSdk.getResource(manager.serviceClient(), poolParamsSource, CapacityPoolInner.class);
         if (capacityPoolSource == null)
         {
             CapacityPoolInner newCapacityPool = new CapacityPoolInner();
@@ -126,11 +123,11 @@ public class main
 
             try
             {
-                capacityPoolSource = await(Creation.createCapacityPool(anfClient, resourceGroupName, anfAccountName, capacityPoolNameSource, newCapacityPool));
+                capacityPoolSource = Creation.createCapacityPool(manager.serviceClient(), resourceGroupName, anfAccountName, capacityPoolNameSource, newCapacityPool);
             }
-            catch (CloudException e)
+            catch (AzureException e)
             {
-                Utils.writeConsoleMessage("An error occurred while creating source capacity pool: " + e.body().message());
+                Utils.writeConsoleMessage("An error occurred while creating source capacity pool: " + e.getMessage());
                 throw e;
             }
         }
@@ -142,7 +139,7 @@ public class main
         Utils.writeConsoleMessage("Creating Destination Capacity Pool at Standard service level...");
 
         String[] poolParamsDestination = {resourceGroupName, anfAccountName, capacityPoolNameDestination};
-        CapacityPoolInner capacityPoolDestination = await(CommonSdk.getResourceAsync(anfClient, poolParamsDestination, CapacityPoolInner.class));
+        CapacityPoolInner capacityPoolDestination = (CapacityPoolInner) CommonSdk.getResource(manager.serviceClient(), poolParamsDestination, CapacityPoolInner.class);
         if (capacityPoolDestination == null)
         {
             CapacityPoolInner newCapacityPool = new CapacityPoolInner();
@@ -152,11 +149,11 @@ public class main
 
             try
             {
-                capacityPoolDestination = await(Creation.createCapacityPool(anfClient, resourceGroupName, anfAccountName, capacityPoolNameDestination, newCapacityPool));
+                capacityPoolDestination = Creation.createCapacityPool(manager.serviceClient(), resourceGroupName, anfAccountName, capacityPoolNameDestination, newCapacityPool);
             }
-            catch (CloudException e)
+            catch (AzureException e)
             {
-                Utils.writeConsoleMessage("An error occurred while creating destination capacity pool: " + e.body().message());
+                Utils.writeConsoleMessage("An error occurred while creating destination capacity pool: " + e.getMessage());
                 throw e;
             }
         }
@@ -171,7 +168,7 @@ public class main
         Utils.writeConsoleMessage("Creating Volume at Premium service level...");
 
         String[] volumeParams = {resourceGroupName, anfAccountName, capacityPoolNameSource, volumeName};
-        VolumeInner volume = await(CommonSdk.getResourceAsync(anfClient, volumeParams, VolumeInner.class));
+        VolumeInner volume = (VolumeInner) CommonSdk.getResource(manager.serviceClient(), volumeParams, VolumeInner.class);
         if (volume == null)
         {
             String subnetId = "/subscriptions/" + subscriptionId + "/resourceGroups/" + resourceGroupName +
@@ -188,11 +185,12 @@ public class main
 
             try
             {
-                volume = await(Creation.createVolume(anfClient, resourceGroupName, anfAccountName, capacityPoolNameSource, volumeName, newVolume));
+                volume = Creation.createVolume(manager.serviceClient(), resourceGroupName, anfAccountName, capacityPoolNameSource, volumeName, newVolume);
+                Utils.writeSuccessMessage("Volume successfully created, resource id: " + volume.id());
             }
-            catch (CloudException e)
+            catch (AzureException e)
             {
-                Utils.writeConsoleMessage("An error occurred while creating volume: " + e.body().message());
+                Utils.writeConsoleMessage("An error occurred while creating volume: " + e.getMessage());
                 throw e;
             }
         }
@@ -210,17 +208,17 @@ public class main
 
         try
         {
-            await(Update.volumePoolChange(anfClient, resourceGroupName, anfAccountName, capacityPoolNameSource, volumeName, capacityPoolDestination.id()));
+            Update.volumePoolChange(manager.serviceClient(), resourceGroupName, anfAccountName, capacityPoolNameSource, volumeName, capacityPoolDestination.id());
             Utils.writeSuccessMessage("Pool change successful. Moved Volume from " + capacityPoolNameSource + " to " + capacityPoolNameDestination);
         }
-        catch (CloudException e)
+        catch (AzureException e)
         {
-            Utils.writeConsoleMessage("An error occurred while performing pool change: " + e.body().message());
+            Utils.writeConsoleMessage("An error occurred while performing pool change: " + e.getMessage());
             throw e;
         }
 
         volumeParams = new String[]{resourceGroupName, anfAccountName, capacityPoolNameDestination, volumeName};
-        volume = await(CommonSdk.getResourceAsync(anfClient, volumeParams, VolumeInner.class));
+        volume = (VolumeInner) CommonSdk.getResource(manager.serviceClient(), volumeParams, VolumeInner.class);
         Utils.writeConsoleMessage("Current Volume service level: " + volume.serviceLevel());
 
         //---------------------------
@@ -239,31 +237,28 @@ public class main
 
             try
             {
-                await(Cleanup.runCleanupTask(anfClient, volumeParams, VolumeInner.class));
+                Cleanup.runCleanupTask(manager.serviceClient(), volumeParams, VolumeInner.class);
                 // ARM workaround to wait for the deletion to complete
-                CommonSdk.waitForNoANFResource(anfClient, volume.id(), VolumeInner.class);
+                CommonSdk.waitForNoANFResource(manager.serviceClient(), volume.id(), VolumeInner.class);
                 Utils.writeSuccessMessage("Volume successfully deleted: " + volume.id());
 
-                await(Cleanup.runCleanupTask(anfClient, poolParamsSource, CapacityPoolInner.class));
-                CommonSdk.waitForNoANFResource(anfClient, capacityPoolSource.id(), CapacityPoolInner.class);
+                Cleanup.runCleanupTask(manager.serviceClient(), poolParamsSource, CapacityPoolInner.class);
+                CommonSdk.waitForNoANFResource(manager.serviceClient(), capacityPoolSource.id(), CapacityPoolInner.class);
                 Utils.writeSuccessMessage("Source Capacity Pool successfully deleted: " + capacityPoolSource.id());
 
-                await(Cleanup.runCleanupTask(anfClient, poolParamsDestination, CapacityPoolInner.class));
-                CommonSdk.waitForNoANFResource(anfClient, capacityPoolDestination.id(), CapacityPoolInner.class);
+                Cleanup.runCleanupTask(manager.serviceClient(), poolParamsDestination, CapacityPoolInner.class);
+                CommonSdk.waitForNoANFResource(manager.serviceClient(), capacityPoolDestination.id(), CapacityPoolInner.class);
                 Utils.writeSuccessMessage("Destination Capacity Pool successfully deleted: " + capacityPoolDestination.id());
 
-                await(Cleanup.runCleanupTask(anfClient, accountParams, NetAppAccountInner.class));
-                CommonSdk.waitForNoANFResource(anfClient, anfAccount.id(), NetAppAccountInner.class);
+                Cleanup.runCleanupTask(manager.serviceClient(), accountParams, NetAppAccountInner.class);
+                CommonSdk.waitForNoANFResource(manager.serviceClient(), anfAccount.id(), NetAppAccountInner.class);
                 Utils.writeSuccessMessage("Account successfully deleted: " + anfAccount.id());
             }
-            catch (CloudException e)
+            catch (AzureException e)
             {
-                Utils.writeConsoleMessage("An error occurred while deleting resource: " + e.body().message());
+                Utils.writeConsoleMessage("An error occurred while deleting resource: " + e.getMessage());
                 throw e;
             }
         }
-
-
-        return CompletableFuture.completedFuture(null);
     }
 }

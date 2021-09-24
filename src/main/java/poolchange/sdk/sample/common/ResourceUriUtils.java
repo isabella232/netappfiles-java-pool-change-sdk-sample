@@ -15,7 +15,7 @@ public class ResourceUriUtils
      */
     public static String getAnfAccount(String resourceUri)
     {
-        if (resourceUri == null || resourceUri.isBlank())
+        if (resourceUri == null || resourceUri.isEmpty())
         {
             return null;
         }
@@ -30,7 +30,7 @@ public class ResourceUriUtils
      */
     public static String getAnfCapacityPool(String resourceUri)
     {
-        if (resourceUri == null || resourceUri.isBlank())
+        if (resourceUri == null || resourceUri.isEmpty())
         {
             return null;
         }
@@ -45,7 +45,7 @@ public class ResourceUriUtils
      */
     public static String getAnfSnapshotPolicy(String resourceUri)
     {
-        if (resourceUri == null || resourceUri.isBlank())
+        if (resourceUri == null || resourceUri.isEmpty())
         {
             return null;
         }
@@ -60,7 +60,7 @@ public class ResourceUriUtils
      */
     public static String getAnfVolume(String resourceUri)
     {
-        if (resourceUri == null || resourceUri.isBlank())
+        if (resourceUri == null || resourceUri.isEmpty())
         {
             return null;
         }
@@ -75,7 +75,7 @@ public class ResourceUriUtils
      */
     public static String getAnfSnapshot(String resourceUri)
     {
-        if (resourceUri == null || resourceUri.isBlank())
+        if (resourceUri == null || resourceUri.isEmpty())
         {
             return null;
         }
@@ -90,7 +90,7 @@ public class ResourceUriUtils
      */
     public static String getResourceGroup(String resourceUri)
     {
-        if (resourceUri == null || resourceUri.isBlank())
+        if (resourceUri == null || resourceUri.isEmpty())
         {
             return null;
         }
@@ -106,7 +106,7 @@ public class ResourceUriUtils
      */
     public static String getResourceValue(String resourceUri, String resourceName)
     {
-        if (resourceUri == null || resourceUri.isBlank())
+        if (resourceUri == null || resourceUri.isEmpty())
         {
             return null;
         }

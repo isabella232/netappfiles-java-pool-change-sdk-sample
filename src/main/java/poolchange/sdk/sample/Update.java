@@ -5,10 +5,8 @@
 
 package poolchange.sdk.sample;
 
-import com.microsoft.azure.management.netapp.v2020_06_01.implementation.AzureNetAppFilesManagementClientImpl;
-import poolchange.sdk.sample.common.Utils;
-
-import java.util.concurrent.CompletableFuture;
+import com.azure.resourcemanager.netapp.fluent.NetAppManagementClient;
+import com.azure.resourcemanager.netapp.models.PoolChangeRequest;
 
 public class Update
 {
@@ -20,13 +18,12 @@ public class Update
      * @param poolName Name of Volume's current Capacity Pool
      * @param volumeName Name of the Volume being updated
      * @param newPoolResourceId Resource id of new capacity pool
-     * @return
      */
-    public static CompletableFuture<Void> volumePoolChange(AzureNetAppFilesManagementClientImpl anfClient, String resourceGroupName,
+    public static void volumePoolChange(NetAppManagementClient anfClient, String resourceGroupName,
                                                            String accountName, String poolName, String volumeName, String newPoolResourceId)
     {
-        anfClient.volumes().poolChange(resourceGroupName, accountName, poolName, volumeName, newPoolResourceId);
-
-        return CompletableFuture.completedFuture(null);
+        PoolChangeRequest request = new PoolChangeRequest();
+        request.withNewPoolResourceId(newPoolResourceId);
+        anfClient.getVolumes().beginPoolChange(resourceGroupName, accountName, poolName, volumeName, request).getFinalResult();
     }
 }
